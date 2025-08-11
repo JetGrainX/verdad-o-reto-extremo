@@ -1,0 +1,924 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>Verdad o Reto Extremo — Prohibido</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#05060a; --card:#0f1722; --accent:#ff2d6f; --accent-2:#ff8fb3; --muted:#9aa4b2; --glass: rgba(255,255,255,0.03);
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0}
+  body{
+    font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial;color:#e9f2ff;
+    background: radial-gradient(1200px 600px at 10% 10%, rgba(255,45,111,0.06), transparent 6%),
+                radial-gradient(1000px 500px at 90% 90%, rgba(255,143,179,0.03), transparent 6%),
+                var(--bg);
+    -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
+    display:flex;align-items:stretch;justify-content:center;padding:0;
+    min-height:100vh;
+  }
+
+  /* App shell that fills the screen like an app */
+  .app {
+    width:100%;
+    max-width:1200px;
+    height:100vh;
+    display:flex;
+    flex-direction:column;
+    margin:0 auto;
+    padding:8px;
+    gap:8px;
+  }
+
+  .topbar{
+    height:56px; display:flex;align-items:center;justify-content:space-between;
+    gap:12px; padding:8px 12px; border-radius:12px;
+    background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(0,0,0,0.06));
+    box-shadow:0 10px 30px rgba(2,6,23,0.6); border:1px solid rgba(255,255,255,0.02);
+  }
+  .brand{display:flex;gap:12px;align-items:center}
+  .logo{width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px;color:white;transform:rotate(-8deg)}
+  .title{font-weight:800;font-size:16px}
+  .top-actions{display:flex;gap:8px;align-items:center}
+
+  .wrap{flex:1; display:flex; gap:12px; align-items:stretch; justify-content:center}
+  /* left column: game area */
+  .leftCol{flex:1; display:flex; flex-direction:column; gap:12px; min-width:280px}
+  /* right column: info */
+  .rightCol{width:360px; max-width:38%; min-width:260px; display:flex; flex-direction:column; gap:12px;}
+
+  .card{background:linear-gradient(180deg, rgba(255,255,255,0.015), rgba(0,0,0,0.04));border-radius:12px;padding:12px;box-shadow:0 10px 30px rgba(3,8,20,0.6);border:1px solid rgba(255,255,255,0.02);display:flex;flex-direction:column;gap:8px}
+  .muted{color:var(--muted);font-size:13px}
+  .btn{background:var(--accent);color:white;padding:12px 16px;border-radius:12px;border:0;font-weight:700;cursor:pointer;box-shadow:0 14px 40px rgba(255,45,111,0.14);display:inline-flex;align-items:center;gap:8px}
+  .btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.03);color:var(--accent);font-weight:700}
+  .btn.small{padding:8px 10px;font-size:14px;border-radius:10px}
+
+  /* Wheel area */
+  .wheelArea{display:flex;align-items:center;justify-content:center;flex-direction:column; gap:10px; padding:6px}
+  .wheelWrap{display:flex;align-items:center;justify-content:center;padding:6px}
+  .wheel{border-radius:50%;position:relative;box-shadow:inset 0 -14px 50px rgba(0,0,0,0.6), 0 20px 60px rgba(0,0,0,0.6);background:conic-gradient(#071428,#081427);display:flex;align-items:center;justify-content:center;transform-style:preserve-3d;transition:transform 0.1s linear}
+  .needle{position:absolute;top:8px;left:50%;transform:translateX(-50%);width:8px;height:36px;background:var(--accent);border-radius:4px;box-shadow:0 4px 14px rgba(255,45,111,0.2);z-index:20}
+  .centerSmall{width:220px;height:220px;border-radius:50%;background:linear-gradient(180deg,#07121a,#091826);display:flex;align-items:center;justify-content:center;flex-direction:column;box-shadow:0 12px 30px rgba(0,0,0,0.6);z-index:10}
+  .selectedName{font-weight:800;font-size:20px}
+  .selectedSub{color:var(--muted);font-size:13px}
+
+  /* sector text */
+  .sectorLabel{transform-origin:center center;width:220px;text-align:center; font-weight:700; font-size:13px}
+
+  /* outcome area */
+  .outcomeBox{min-height:110px;padding:12px;border-radius:10px;background:linear-gradient(180deg,#03101a,#021226);display:flex;align-items:center;justify-content:center;text-align:center;flex-direction:column}
+  .outcomeText{font-size:16px;font-weight:700}
+
+  /* players list */
+  .playersList{display:flex;flex-direction:column;gap:8px;max-height:280px;overflow:auto;padding-right:6px}
+  .playerRow{display:flex;align-items:center;gap:10px;padding:8px;border-radius:10px;background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(0,0,0,0.04))}
+  .avatar{width:44px;height:44px;border-radius:8px;background:linear-gradient(135deg, rgba(255,255,255,0.04), rgba(0,0,0,0.06));display:flex;align-items:center;justify-content:center;font-weight:800}
+
+  /* scoreboard */
+  table{width:100%;border-collapse:collapse}
+  th,td{padding:8px;border-bottom:1px solid rgba(255,255,255,0.03);text-align:left}
+  th{font-weight:700;color:var(--muted);font-size:13px}
+
+  /* responsive tweaks */
+  @media (max-width:980px){
+    .wrap{flex-direction:column; padding:6px}
+    .rightCol{width:100%;max-width:100%}
+    .wheel{width:74vw;height:74vw}
+    .centerSmall{width:44vw;height:44vw}
+    .centerSmall .selectedName{font-size:18px}
+  }
+  @media (min-width:981px){
+    .wheel{width:420px;height:420px}
+    .centerSmall{width:220px;height:220px}
+  }
+
+  /* age overlay */
+  .overlay{position:fixed;inset:0;background:linear-gradient(180deg, rgba(0,0,0,0.75), rgba(0,0,0,0.9));display:flex;align-items:center;justify-content:center;z-index:2000}
+  .ageModal{width:420px;max-width:92%;background:linear-gradient(180deg,#07101a,#081226);border-radius:12px;padding:22px;box-shadow:0 30px 80px rgba(0,0,0,0.8);text-align:center}
+  .ageModal h2{margin:0 0 8px 0}
+  .muted-sm{color:var(--muted);font-size:12px}
+
+  /* settings panel */
+  .settingsPanel{position:fixed; top:12px; right:12px; z-index:2500; display:flex; align-items:center; gap:8px}
+  .settingsBtn{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.04);padding:8px;border-radius:10px;color:var(--muted);cursor:pointer}
+  .settingsBox{position:fixed; top:64px; right:12px; z-index:2600; width:300px; max-width:92%; background:linear-gradient(180deg,#07101a,#081226); border-radius:12px; padding:12px; box-shadow:0 30px 60px rgba(0,0,0,0.6); display:none}
+  .switchRow{display:flex;justify-content:space-between;align-items:center;padding:6px 4px}
+  .small-muted{font-size:13px;color:var(--muted)}
+
+  /* guide badge */
+  .guideBadge{position:fixed; left:12px; bottom:12px; z-index:2500}
+  .guideCard{padding:10px;border-radius:12px;background:linear-gradient(180deg,#07121a,#081226);border:1px solid rgba(255,255,255,0.02);box-shadow:0 20px 40px rgba(0,0,0,0.6)}
+</style>
+</head>
+<body>
+
+<div class="app" id="app">
+  <div class="topbar">
+    <div class="brand">
+      <div class="logo">V&R</div>
+      <div>
+        <div class="title">Verdad o Reto Extremo — Prohibido</div>
+        <div class="muted" style="font-size:12px">Juego para mayores de 18 — Usa con responsabilidad</div>
+      </div>
+    </div>
+
+    <div class="top-actions">
+      <div id="loadBtnText" class="muted small-muted" style="margin-right:10px"></div>
+      <button id="settingsBtn" class="settingsBtn" title="Ajustes">⚙️</button>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="leftCol">
+      <!-- Menu / Setup -->
+      <div id="screen-menu" class="card" style="display:block">
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <h3 style="margin:0">Bienvenido</h3>
+          <div class="muted">Juego extremo. Antes de entrar confirma que eres mayor de 18 años.</div>
+          <div style="display:flex;gap:8px">
+            <button class="btn" id="btn-config">Configurar jugadores</button>
+            <button class="btn ghost" id="btn-load">Cargar jugadores</button>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="btn ghost" id="btn-guide-toggle">¿Cómo jugar?</button>
+            <button class="btn ghost" id="btn-start-quick">Empezar (rápido)</button>
+          </div>
+          <div class="muted-sm">Sugerido: mínimo 2 jugadores. Ajustes arriba a la derecha.</div>
+        </div>
+      </div>
+      <!-- Config -->
+      <div id="screen-config" class="card" style="display:none">
+        <h3 style="margin:0">Agregar jugadores</h3>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start">
+          <div style="flex:1;min-width:220px">
+            <label class="small-muted">Nombre</label>
+            <input id="inpName" placeholder="Ej: Camila" style="width:100%;padding:10px;border-radius:10px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.03);color:inherit;outline:none"/>
+            <div style="height:6px"></div>
+            <label class="small-muted">Sexo</label>
+            <select id="inpSex" style="width:100%;padding:10px;border-radius:10px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.03);color:inherit;outline:none">
+              <option value="F">Femenino</option>
+              <option value="M">Masculino</option>
+              <option value="O">Otro</option>
+            </select>
+            <div style="height:6px"></div>
+            <label class="small-muted">Preferencia</label>
+            <select id="inpPref" style="width:100%;padding:10px;border-radius:10px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.03);color:inherit;outline:none">
+              <option value="both">Ambos</option>
+              <option value="M">Hombres</option>
+              <option value="F">Mujeres</option>
+            </select>
+            <div style="height:8px"></div>
+            <div style="display:flex;gap:8px">
+              <button class="btn" id="btnAdd">Agregar jugador</button>
+              <button class="btn ghost" id="btnStart">Empezar juego</button>
+            </div>
+          </div>
+
+          <div style="width:360px;min-width:260px">
+            <div class="card" style="height:100%">
+              <h4 style="margin:0">Jugadores</h4>
+              <div class="playersList" id="playersList"></div>
+              <div style="display:flex;gap:8px;margin-top:8px">
+                <button class="btn ghost" id="btnClear">Limpiar todo</button>
+                <button class="btn" id="btnSaveLocal">Guardar</button>
+              </div>
+              <div class="muted-sm" style="margin-top:8px">Los cambios se guardan en el navegador. Puedes volver luego.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Game -->
+      <div id="screen-game" class="card" style="display:none;flex-direction:column;gap:10px">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <strong>Ruleta</strong>
+            <div class="muted" style="font-size:13px">Gira para seleccionar al jugador</div>
+          </div>
+          <div>
+            <button class="btn ghost" id="btnEnd">Terminar partida</button>
+          </div>
+        </div>
+
+        <div class="wheelArea">
+          <div class="wheelWrap">
+            <div id="wheel" class="wheel" aria-hidden="true">
+              <div class="needle"></div>
+              <!-- sectors will be inserted -->
+              <div class="centerSmall" id="centerSmall">
+                <div class="selectedName" id="selectedName">Pulsa GIRAR</div>
+                <div class="selectedSub muted" id="selectedSub">—</div>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:10px;align-items:center">
+            <button class="btn spinBtn" id="btnSpin">GIRAR</button>
+            <button class="btn ghost" id="btnSpinSlow">GIRAR LENTO</button>
+            <div style="margin-left:auto" class="muted">Turnos: <span id="turnCount">0</span></div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <div class="rightCol">
+      <div class="card">
+        <h4 style="margin:0">Turno</h4>
+        <div class="muted-sm">Aquí saldrá la verdad o reto cuando se seleccione.</div>
+        <div style="height:8px"></div>
+        <div class="outcomeBox" id="outcomeBox">
+          <div id="outcomeContent" class="muted">Pulsa GIRAR para empezar.</div>
+        </div>
+        <div style="height:8px"></div>
+        <div style="display:flex;gap:8px" id="pointsRow" hidden>
+          <button class="btn" id="btnDone">Cumplió</button>
+          <button class="btn ghost" id="btnNotDone">No cumplió</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h4 style="margin:0">Tabla de Puntos</h4>
+        <div id="scoreboard" style="max-height:220px;overflow:auto"></div>
+        <div style="height:8px"></div>
+        <div class="muted-sm">Opciones: <button class="btn ghost" id="btnResetScores">Reset Puntos</button></div>
+      </div>
+
+      <div class="card">
+        <h4 style="margin:0">Accesos rápidos</h4>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+          <button class="btn ghost" id="btnRestart">Iniciar de nuevo</button>
+          <button class="btn ghost" id="btnToMenu">Volver al menú</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="position:absolute;right:12px;bottom:12px;font-size:12px;color:var(--muted)">Creado por ChatGPT — Usa con responsabilidad</div>
+</div>
+
+<!-- AGE MODAL -->
+<div id="ageOverlay" class="overlay" aria-hidden="false">
+  <div class="ageModal">
+    <h2>¿Tienes 18 años o más?</h2>
+    <p class="muted-sm">Debes ser mayor de edad para jugar a esta versión explícita.</p>
+    <div style="height:12px"></div>
+    <div style="display:flex;gap:8px;justify-content:center">
+      <button class="btn small" id="ageYes">Sí, tengo +18</button>
+      <button class="btn small deny warn" id="ageNo">No, no tengo +18</button>
+    </div>
+    <div style="height:8px"></div>
+    <div id="ageMsg" class="muted-sm" style="display:none">Acceso denegado. Este contenido es solo para mayores de edad.</div>
+  </div>
+</div>
+
+<!-- settings -->
+<div class="settingsPanel">
+  <button id="settingsToggle" class="settingsBtn" title="Abrir ajustes">⚙️</button>
+</div>
+<div id="settingsBox" class="settingsBox" role="dialog" aria-hidden="true">
+  <h4 style="margin:0 0 8px 0">Ajustes</h4>
+  <div class="switchRow"><div class="small-muted">Sonido ruleta</div><input type="checkbox" id="optSound" /></div>
+  <div class="switchRow"><div class="small-muted">Voz femenina (lee el texto)</div><input type="checkbox" id="optVoice" /></div>
+  <div class="switchRow"><div class="small-muted">Efecto campana antes de leer</div><input type="checkbox" id="optBell" /></div>
+  <div class="switchRow"><div class="small-muted">Mostrar guía inicial</div><input type="checkbox" id="optGuide" /></div>
+  <div style="height:8px"></div>
+  <div style="display:flex;gap:8px">
+    <button class="btn" id="btnResetLocal">Reiniciar todo (guardado)</button>
+    <button class="btn ghost" id="btnCloseSettings">Cerrar</button>
+  </div>
+  <div style="height:8px"></div>
+  <div class="muted-sm">También puedes activar/desactivar sonidos rápido desde aquí.</div>
+</div>
+
+<!-- guide badge -->
+<div class="guideBadge" id="guideBadge" style="display:none">
+  <div class="guideCard">
+    <strong>Cómo jugar (rápido)</strong>
+    <ol style="margin:6px 0 0 16px;padding:0">
+      <li>Agrega mínimo 2 jugadores.</li>
+      <li>Pulsa <strong>GIRAR</strong> para seleccionar a quien juega.</li>
+      <li>Elige <strong>Verdad</strong> o <strong>Reto</strong>. El texto se leerá en voz (si está activada).</li>
+      <li>El grupo decide si cumple → asigna punto.</li>
+    </ol>
+    <div style="height:6px"></div>
+    <div style="display:flex;gap:6px">
+      <button class="btn small" id="guideCloseBtn">Entendido</button>
+    </div>
+  </div>
+</div>
+
+<!-- small popup for choice -->
+<div id="choicePopup" style="display:none;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:340px;background:linear-gradient(180deg,#071826,#071622);border-radius:12px;padding:16px;box-shadow:0 30px 90px rgba(0,0,0,0.8);z-index:3000;text-align:center">
+  <div id="choiceName" style="font-weight:800"></div>
+  <div class="muted-sm" style="margin-top:6px">¿Verdad o Reto?</div>
+  <div style="height:12px"></div>
+  <div style="display:flex;gap:8px;justify-content:center">
+    <button class="btn" id="chTruth">Verdad</button>
+    <button class="btn ghost" id="chDare">Reto</button>
+  </div>
+</div>
+
+<script>
+/* ---------------------------
+   App logic (modificado y mejorado)
+   --------------------------- */
+
+(function(){
+  // Elements
+  const ageOverlay = document.getElementById('ageOverlay');
+  const ageYes = document.getElementById('ageYes');
+  const ageNo = document.getElementById('ageNo');
+  const ageMsg = document.getElementById('ageMsg');
+
+  const screenMenu = document.getElementById('screen-menu');
+  const screenConfig = document.getElementById('screen-config');
+  const screenGame = document.getElementById('screen-game');
+
+  const btnConfig = document.getElementById('btn-config');
+  const btnLoad = document.getElementById('btn-load');
+  const btnStartQuick = document.getElementById('btn-start-quick');
+  const btnGuideToggle = document.getElementById('btn-guide-toggle');
+
+  const inpName = document.getElementById('inpName');
+  const inpSex = document.getElementById('inpSex');
+  const inpPref = document.getElementById('inpPref');
+  const btnAdd = document.getElementById('btnAdd');
+  const btnStart = document.getElementById('btnStart');
+  const playersListEl = document.getElementById('playersList');
+  const btnClear = document.getElementById('btnClear');
+  const btnSaveLocal = document.getElementById('btnSaveLocal');
+
+  const wheel = document.getElementById('wheel');
+  const selectedNameEl = document.getElementById('selectedName');
+  const selectedSub = document.getElementById('selectedSub');
+  const btnSpin = document.getElementById('btnSpin');
+  const btnSpinSlow = document.getElementById('btnSpinSlow');
+  const btnEnd = document.getElementById('btnEnd');
+  const outcomeContent = document.getElementById('outcomeContent');
+  const pointsRow = document.getElementById('pointsRow');
+  const btnDone = document.getElementById('btnDone');
+  const btnNotDone = document.getElementById('btnNotDone');
+  const scoreboard = document.getElementById('scoreboard');
+  const turnCountEl = document.getElementById('turnCount');
+  const btnResetScores = document.getElementById('btnResetScores');
+  const btnRestart = document.getElementById('btnRestart');
+  const btnToMenu = document.getElementById('btnToMenu');
+
+  const settingsToggle = document.getElementById('settingsToggle');
+  const settingsBox = document.getElementById('settingsBox');
+  const settingsBtn = document.getElementById('settingsBtn');
+  const settingsOpenBtn = document.getElementById('settingsBtn');
+  const settingsClose = document.getElementById('btnCloseSettings');
+  const optSound = document.getElementById('optSound');
+  const optVoice = document.getElementById('optVoice');
+  const optBell = document.getElementById('optBell');
+  const optGuide = document.getElementById('optGuide');
+  const btnResetLocal = document.getElementById('btnResetLocal');
+  const loadBtnText = document.getElementById('loadBtnText');
+
+  const choicePopup = document.getElementById('choicePopup');
+  const choiceName = document.getElementById('choiceName');
+  const chTruth = document.getElementById('chTruth');
+  const chDare = document.getElementById('chDare');
+
+  const guideBadge = document.getElementById('guideBadge');
+  const guideCloseBtn = document.getElementById('guideCloseBtn');
+  const btnGuideClose = document.getElementById('guideCloseBtn');
+
+  // State
+  let players = []; // {id,name,sex,pref,score}
+  let current = null;
+  let currentPartner = null;
+  let turnCount = 0;
+  let spun = false;
+  let sectors = [];
+  const STORAGE_KEY = 'vre_extreme_players_v3';
+  const SETTINGS_KEY = 'vre_extreme_settings_v3';
+
+  // Default settings
+  const defaultSettings = {
+    sound: true,
+    voice: true,
+    bell: true,
+    guide: true
+  };
+  let settings = loadSettings();
+  // Audio: simple tick/bell using WebAudio
+  const AudioCtx = window.AudioContext || window.webkitAudioContext;
+  let audioCtx = null;
+  function ensureAudio(){
+    if(!audioCtx){ audioCtx = new AudioCtx(); }
+    return audioCtx;
+  }
+  function tickSound(frequency=1000, time=0.03, gain=0.035){
+    if(!settings.sound) return;
+    const ctx = ensureAudio();
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.type = 'square';
+    o.frequency.value = frequency;
+    g.gain.value = gain;
+    o.connect(g); g.connect(ctx.destination);
+    o.start();
+    o.stop(ctx.currentTime + time);
+  }
+  function bellSound(){
+    if(!settings.sound) return;
+    const ctx = ensureAudio();
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.type='sine';
+    o.frequency.setValueAtTime(880, ctx.currentTime);
+    o.frequency.exponentialRampToValueAtTime(220, ctx.currentTime + 1);
+    g.gain.setValueAtTime(0.002, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 1);
+    o.connect(g); g.connect(ctx.destination);
+    o.start();
+    o.stop(ctx.currentTime + 1.05);
+  }
+
+  // TTS using Web Speech API: female voice selection
+  function speakText(text, rate=1, pitch=1){
+    if(!settings.voice) return Promise.resolve();
+    if(!('speechSynthesis' in window)) return Promise.resolve();
+    return new Promise((resolve)=>{
+      const utter = new SpeechSynthesisUtterance(text);
+      // pick a female voice if possible
+      const voices = speechSynthesis.getVoices();
+      let v = voices.find(x=>/female|woman|woman/i.test((x.name + ' ' + x.voiceURI))) ||
+              voices.find(x=>/google.es|google|es-/.test(x.lang)) ||
+              voices.find(x=>x.lang && x.lang.startsWith('es')) ||
+              voices[0];
+      if(v) utter.voice = v;
+      utter.rate = Math.max(0.4, Math.min(rate,2));
+      utter.pitch = Math.max(0.5, Math.min(pitch,2));
+      utter.onend = ()=> resolve();
+      speechSynthesis.cancel(); // cancel previous
+      speechSynthesis.speak(utter);
+    });
+  }
+
+  // Save/load settings
+  function saveSettings(){
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+    applySettingsUI();
+  }
+  function loadSettings(){
+    try{
+      const raw = localStorage.getItem(SETTINGS_KEY);
+      if(raw) return Object.assign({}, defaultSettings, JSON.parse(raw));
+    }catch(e){}
+    return Object.assign({}, defaultSettings);
+  }
+  function applySettingsUI(){
+    optSound.checked = !!settings.sound;
+    optVoice.checked = !!settings.voice;
+    optBell.checked = !!settings.bell;
+    optGuide.checked = !!settings.guide;
+    guideBadge.style.display = settings.guide ? 'block' : 'none';
+  }
+
+  // Save / load players
+  function savePlayers(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(players)); updateLoadText(); }
+  function loadPlayers(){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if(raw) players = JSON.parse(raw);
+    }catch(e){ players=[]; }
+  }
+  function updateLoadText(){ loadBtnText.innerText = players.length ? `Guardados: ${players.length}` : ''; }
+
+  // Age handling
+  ageYes.addEventListener('click', ()=>{
+    ageOverlay.style.display='none';
+    if(settings.guide) guideBadge.style.display='block';
+  });
+  ageNo.addEventListener('click', ()=>{
+    ageMsg.style.display='block';
+    ageYes.style.pointerEvents='none';
+    ageNo.innerText = 'No, no tengo +18';
+    ageNo.disabled = true;
+  });
+
+  // UI navigation
+  function showScreen(el){
+    [screenMenu,screenConfig,screenGame].forEach(s=>s.style.display='none');
+    el.style.display='block';
+  }
+
+  btnConfig.addEventListener('click', ()=> showScreen(screenConfig));
+  btnLoad.addEventListener('click', ()=>{ loadPlayers(); renderPlayersList(); alert('Jugadores cargados (si existían).'); });
+  btnStartQuick.addEventListener('click', ()=>{
+    // try load players and start
+    loadPlayers();
+    if(players.length < 2){ alert('Necesitas al menos 2 jugadores.'); return; }
+    startGame();
+  });
+
+  // Players UI
+  function renderPlayersList(){
+    playersListEl.innerHTML = '';
+    players.forEach((p, idx)=>{
+      const row = document.createElement('div');
+      row.className = 'playerRow';
+      row.innerHTML = `
+        <div class="avatar">${escapeHtml(p.name.charAt(0) || 'P')}</div>
+        <div style="min-width:0">
+          <div style="font-weight:700">${escapeHtml(p.name)}</div>
+          <div class="muted-sm">${p.sex} · Pref: ${p.pref}</div>
+        </div>
+        <div style="margin-left:auto;display:flex;gap:6px">
+          <button class="btn ghost" data-idx="${idx}" data-action="edit">Editar</button>
+          <button class="btn ghost" data-idx="${idx}" data-action="remove">Eliminar</button>
+        </div>
+      `;
+      playersListEl.appendChild(row);
+    });
+    updateLoadText();
+  }
+
+  playersListEl.addEventListener('click', (ev)=>{
+    const btn = ev.target.closest('button');
+    if(!btn) return;
+    const idx = Number(btn.dataset.idx);
+    const action = btn.dataset.action;
+    if(action === 'edit'){
+      const name = prompt('Editar nombre', players[idx].name);
+      if(name && name.trim()){ players[idx].name = name.trim(); savePlayers(); renderPlayersList(); }
+    } else if(action === 'remove'){
+      if(!confirm('Eliminar jugador?')) return;
+      players.splice(idx,1); savePlayers(); renderPlayersList();
+    }
+  });
+
+  btnAdd.addEventListener('click', ()=>{
+    const name = inpName.value.trim();
+    const sex = inpSex.value;
+    const pref = inpPref.value;
+    if(!name){ alert('Ingresa un nombre'); return; }
+    players.push({id:Date.now()+Math.random(),name,sex,pref,score:0});
+    inpName.value=''; renderPlayersList(); savePlayers();
+  });
+
+  btnClear.addEventListener('click', ()=>{
+    if(!confirm('Limpiar todos los jugadores guardados?')) return;
+    players=[]; savePlayers(); renderPlayersList();
+  });
+
+  btnSaveLocal.addEventListener('click', ()=>{ savePlayers(); alert('Guardado en el navegador.'); });
+
+  btnStart.addEventListener('click', ()=>{
+    if(players.length < 2){ alert('Necesitas al menos 2 jugadores.'); return; }
+    startGame();
+  });
+
+  // Scoreboard
+  function renderScoreboard(){
+    scoreboard.innerHTML = '';
+    const div = document.createElement('div');
+    div.innerHTML = '<table><thead><tr><th>Jugador</th><th>Puntos</th></tr></thead><tbody>'+ players.map(p=>`<tr><td>${escapeHtml(p.name)}</td><td>${p.score}</td></tr>`).join('') +'</tbody></table>';
+    scoreboard.appendChild(div);
+  }
+
+  function escapeHtml(s){ return String(s).replace(/[&<>"']/g, (m)=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+
+  // Build wheel sectors
+  function buildWheel(){
+    // clear
+    const existing = wheel.querySelectorAll('.sector');
+    existing.forEach(n=>n.remove());
+    sectors = [];
+    const n = players.length || 1;
+    const angleStep = 360 / n;
+    for(let i=0;i<n;i++){
+      const p = players[i];
+      const el = document.createElement('div');
+      el.className = 'sector';
+      el.style.position = 'absolute';
+      el.style.left = 0; el.style.top = 0; el.style.width = '100%'; el.style.height = '100%';
+      el.style.transform = `rotate(${i*angleStep}deg)`;
+      el.innerHTML = `<div style="transform:rotate(${angleStep/2}deg) translateY(-${(wheel.offsetWidth||420)/2 - 60}px); width:220px; text-align:center;">
+                        <div class="sectorLabel">${escapeHtml(p.name)}</div>
+                        <div class="muted-sm" style="font-size:12px">${p.pref}</div>
+                      </div>`;
+      wheel.appendChild(el);
+      sectors.push({el,idx:i});
+    }
+    selectedNameEl.innerText = 'Pulsa GIRAR';
+    selectedSub.innerText = `Jugadores: ${players.length}`;
+  }
+
+  // Spin physics: dramatic start, sustain, then slow deceleration near end
+  function spinWheel(speedMultiplier=1){
+    if(players.length < 2){ alert('Agrega más jugadores primero'); return; }
+    if(spun) return;
+    spun = true;
+    outcomeContent.innerHTML = `<div class="muted-sm">Girando...</div>`;
+    pointsRow.hidden = true;
+
+    // Prepare audio context (user gesture may be required)
+    try{ ensureAudio(); }catch(e){ /* ignore */ }
+
+    const baseDuration = 2600 * speedMultiplier; // total duration
+    // rotations variable
+    const rotations = 6 * speedMultiplier + Math.random()*3;
+    const final = Math.random() * 360;
+    const totalDeg = rotations*360 + final;
+    const start = performance.now();
+    const startDeg = wheel._rot || 0;
+    // We'll implement a custom easing: fast start (easeIn), sustain, then strong easeOut near the end
+    function animate(now){
+      const t = (now - start) / baseDuration;
+      const tt = Math.min(1, t);
+      // custom easing: piecewise to make last 15% slow and dramatic
+      let eased;
+      if(tt < 0.7){
+        // fast phase
+        eased = 1 - Math.pow(1 - tt/0.7, 2); // quick ramp
+      } else {
+        // slow dramatic end
+        const tail = (tt - 0.7) / 0.3; // 0..1
+        eased = 1 - (1 - (0.7 + 0.3 * (1 - Math.pow(1 - tail, 3)))) ; // ensure continuity
+      }
+      const deg = startDeg + totalDeg * eased;
+      wheel.style.transform = `rotate(${deg}deg)`;
+
+      // audio ticks during last 900ms to build tension
+      const timeLeft = baseDuration - (now - start);
+      if(settings.sound && timeLeft < 900 && timeLeft > 0){
+        // tick density increases as timeLeft decreases
+        const tickEvery = Math.max(60, timeLeft / 6);
+        if(!wheel._lastTick || (now - wheel._lastTick) > tickEvery){
+          tickSound(900 + (900 - timeLeft)/2, 0.03, 0.03 + (900 - timeLeft)/900*0.04);
+          wheel._lastTick = now;
+        }
+      }
+
+      if(tt < 1) requestAnimationFrame(animate);
+      else {
+        wheel._rot = (startDeg + totalDeg) % 360;
+        // determine index landed
+        const landedDeg = (360 - (wheel._rot % 360) + (360/players.length)/2 ) % 360;
+        const idx = Math.floor(landedDeg / (360/players.length)) % players.length;
+        current = players[idx];
+        turnCount += 1;
+        turnCountEl.innerText = turnCount;
+        selectedNameEl.innerText = current.name;
+        selectedSub.innerText = `Pref: ${current.pref}`;
+        spun = false;
+        // small delay then show choice popup
+        setTimeout(()=> showChoicePopup(), 350);
+      }
+    }
+    requestAnimationFrame(animate);
+  }
+
+  btnSpin.addEventListener('click', ()=> spinWheel(1));
+  btnSpinSlow.addEventListener('click', ()=> spinWheel(1.4));
+
+  // Choice popup
+  function showChoicePopup(){
+    choiceName.innerText = current.name;
+    choicePopup.style.display = 'block';
+  }
+  chTruth.addEventListener('click', ()=>{
+    choicePopup.style.display='none';
+    loadOutcome('truth');
+  });
+  chDare.addEventListener('click', ()=>{
+    choicePopup.style.display='none';
+    loadOutcome('dare');
+  });
+
+  // pick partner based on pref
+  function pickPartner(){
+    const pool = players.filter(p => p.id !== current.id);
+    if(current.pref === 'both'){
+      return pool[Math.floor(Math.random()*pool.length)];
+    } else {
+      const match = pool.filter(p => p.sex === current.pref);
+      if(match.length) return match[Math.floor(Math.random()*match.length)];
+      return pool[Math.floor(Math.random()*pool.length)];
+    }
+  }
+
+  // Outcomes lists (extreme but not pornographic explicit detail)
+  // TRUTHS: 80% A-B, 20% A (we'll mark entries that are single-person with token {A} only)
+  const TRUTHS_AB = [
+    "{A}, describe con detalle cómo sería tu noche más salvaje con {B} si estuvieran solos y sin límites.",
+    "{A}, ¿qué parte del cuerpo de {B} te vuelve loco/a y por qué?",
+    "{A}, si {B} te pidiera una foto explícita ahora, ¿cómo sería y qué le escribirías?",
+    "{A}, confiesa la fantasía sexual más sucia que tuviste con alguien aquí.",
+    "{A}, ¿alguna vez te masturbanste pensando en {B}? Cuenta cómo fue.",
+    "{A}, ¿qué harías ahora mismo si estuvieras solo/a con {B} sin que nadie lo supiera?",
+    "{A}, ¿qué acto con {B} te gustaría que ocurriera si nadie se enterara?",
+    "{A}, describe cómo besarías a {B} empezando por el cuello hasta los labios.",
+    "{A}, ¿con qué parte de {B} te atreverías a experimentar si no hubiera límites?",
+    "{A}, ¿a quién de aquí le enviarías una foto sin pensar y por qué?",
+    "{A}, ¿te gustaría tener un encuentro prohibido con {B}? Detalla el lugar y la acción.",
+    "{A}, ¿qué te excita más de la voz de {B}? Describe lo que harías al oírla en privado."
+  ];
+  const TRUTHS_AONLY = [
+    "{A}, describe tu fantasía sexual más extrema que nunca has contado. Detalla sensaciones.",
+    "{A}, ¿qué harías ahora mismo para excitarte si supieras que nadie te va a juzgar?",
+    "{A}, confiesa la escena sexual más atrevida que te imaginas en tu cabeza."
+  ];
+
+  const DARES = [
+    "{A}, acaricia lentamente la entrepierna de {B} por 20 segundos (por encima o por debajo de la ropa según acuerden).",
+    "{A}, quítale una prenda a {B} usando sólo la boca (sin manos).",
+    "{A}, besa con lengua a {B} durante 10 segundos y mantén contacto cercano.",
+    "{A}, siéntate sobre las piernas de {B} y muévete como si estuvieras teniendo sexo por 20 segundos.",
+    "{A}, recuéstate sobre {B} y simula con besos y caricias cómo lo/a llevarías a la cama.",
+    "{A}, realiza un 'tour' de besos por el cuerpo de {B} (5 ubicaciones no íntimas) y termina en la boca.",
+    "{A}, coloca tu cara cerca de la entrepierna de {B} por 5 segundos (sobre la ropa).",
+    "{A}, haz un striptease corto para {B} durante 20 segundos (si no quiere, hagan versión por encima de la ropa).",
+    "{A}, susurra en el oído de {B} una fantasía erótica y haz que la repita.",
+    "{A}, toma la mano de {B} y recorre su torso por 12 segundos con intención sensual.",
+    "{A}, besa la nuca de {B} y haz pequeñas mordidas ligeras por 8 segundos.",
+    "{A}, imita el mejor beso que podrías darle a {B} por 15 segundos."
+  ];
+
+  // helper: choose truth with 80/20 split
+  function pickTruth(){
+    const p = Math.random();
+    if(p < 0.8){
+      const raw = TRUTHS_AB[Math.floor(Math.random()*TRUTHS_AB.length)];
+      currentPartner = pickPartner();
+      if(!currentPartner) currentPartner = players.find(x=>x.id !== current.id) || current;
+      return replaceNames(raw, current.name, currentPartner.name);
+    } else {
+      const raw = TRUTHS_AONLY[Math.floor(Math.random()*TRUTHS_AONLY.length)];
+      return replaceNames(raw, current.name, current.name);
+    }
+  }
+  function pickDare(){
+    const raw = DARES[Math.floor(Math.random()*DARES.length)];
+    currentPartner = pickPartner();
+    if(!currentPartner) currentPartner = players.find(x=>x.id !== current.id) || current;
+    return replaceNames(raw, current.name, currentPartner.name);
+  }
+
+  function replaceNames(template,a,b){ return template.replace(/{A}/g,a).replace(/{B}/g,b); }
+
+  // Load outcome and play bell + voice
+  function loadOutcome(kind){
+    outcomeContent.innerHTML = `<div class="muted-sm">Cargando ${kind === 'dare' ? 'reto' : 'verdad'}...</div>`;
+    setTimeout(()=>{
+      let text;
+      if(kind === 'dare') text = pickDare();
+      else text = pickTruth();
+      // show text
+      outcomeContent.innerHTML = `<div style="display:flex;flex-direction:column;align-items:center"><div style="font-weight:800;margin-bottom:8px">${kind === 'dare' ? 'RETO' : 'VERDAD'}</div><div class="outcomeText">${escapeHtml(text)}</div></div>`;
+      // show points
+      pointsRow.hidden = false;
+
+      // play bell then speak (if enabled)
+      const doBell = settings.bell;
+      const doVoice = settings.voice;
+      if(doBell) bellSound();
+      // choose TTS rate/pitch based on keywords (very simple detector)
+      const lower = text.toLowerCase();
+      let rate = 1.05, pitch = 1.05;
+      const sensualWords = ['besar','acariciar','nuca','entrepierna','sensual','lento','susurra','striptease','erótica','erótico','fantasía','excita','beso','acaricia'];
+      const directWords = ['quítale','quita','desnudar','prenda','boca','entrepierna','sexo','penetr','siéntate','muévete'];
+      let sensualScore = sensualWords.reduce((s,w)=> s + (lower.includes(w) ? 1:0), 0);
+      let directScore = directWords.reduce((s,w)=> s + (lower.includes(w) ? 1:0), 0);
+      if(sensualScore > directScore){
+        rate = 0.86; pitch = 1.05; // slower, sensual
+      } else if(directScore > sensualScore){
+        rate = 1.1; pitch = 1.02; // a bit faster
+      } else {
+        rate = 1; pitch = 1;
+      }
+
+      // speak after small delay so bell finishes a bit
+      setTimeout(()=> {
+        if(settings.voice){
+          // ensure voices loaded
+          if(typeof speechSynthesis !== 'undefined'){
+            // mobile browsers often need a gesture; we assume user has interacted by now
+            speakText(text, rate, pitch);
+          }
+        }
+      }, doBell ? 300 : 50);
+
+    }, 700);
+  }
+
+  // Points buttons
+  btnDone.onclick = function(){
+    if(!current) return;
+    current.score = (current.score||0) + 1;
+    savePlayers(); renderScoreboard();
+    pointsRow.hidden = true;
+    outcomeContent.innerHTML = `<div class="muted-sm">Punto otorgado a ${escapeHtml(current.name)}. Siguiente turno.</div>`;
+  };
+  btnNotDone.onclick = function(){
+    if(!current) return;
+    outcomeContent.innerHTML = `<div class="muted-sm">${escapeHtml(current.name)} no cumplió. No hay puntos.</div>`;
+    pointsRow.hidden = true;
+    savePlayers(); renderScoreboard();
+  };
+
+  // End match
+  btnEnd.addEventListener('click', ()=>{
+    if(!confirm('Terminar la partida y ver resultados?')) return;
+    showResults();
+  });
+
+  function showResults(){
+    // small modal-like result (we'll re-use right col)
+    const copy = players.slice().sort((a,b)=>b.score - a.score);
+    const rows = copy.map(p=>`<tr><td style="font-weight:700">${escapeHtml(p.name)}</td><td>${p.score}</td></tr>`).join('');
+    outcomeContent.innerHTML = `<div style="width:100%"><h4 style="margin:0 0 8px 0">Resultados finales</h4><table><thead><tr><th>Jugador</th><th>Puntos</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+    pointsRow.hidden = true;
+  }
+
+  btnRestart.addEventListener('click', ()=>{
+    if(players.length === 0) return;
+    players = players.map(p=>Object.assign({},p,{score:0}));
+    savePlayers(); renderScoreboard(); buildWheel();
+    turnCount = 0; turnCountEl.innerText = turnCount;
+    showScreen(screenGame);
+  });
+
+  btnToMenu.addEventListener('click', ()=> showScreen(screenMenu));
+  btnResetScores.addEventListener('click', ()=>{
+    if(!confirm('Resetear puntuaciones?')) return;
+    players = players.map(p=>Object.assign({},p,{score:0}));
+    savePlayers(); renderScoreboard();
+  });
+
+  // Settings UI handlers
+  settingsToggle.addEventListener('click', ()=>{
+    settingsBox.style.display = settingsBox.style.display === 'block' ? 'none' : 'block';
+  });
+  settingsClose.addEventListener('click', ()=> settingsBox.style.display='none');
+
+  optSound.addEventListener('change', ()=>{ settings.sound = optSound.checked; saveSettings(); });
+  optVoice.addEventListener('change', ()=>{ settings.voice = optVoice.checked; saveSettings(); });
+  optBell.addEventListener('change', ()=>{ settings.bell = optBell.checked; saveSettings(); });
+  optGuide.addEventListener('change', ()=>{ settings.guide = optGuide.checked; saveSettings(); });
+
+  btnResetLocal.addEventListener('click', ()=>{
+    if(!confirm('¿Reiniciar guardados y ajustes a valores por defecto?')) return;
+    localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(SETTINGS_KEY);
+    players = [];
+    settings = Object.assign({}, defaultSettings);
+    renderPlayersList();
+    applySettingsUI();
+    updateLoadText();
+    alert('Reiniciado.');
+  });
+
+  // Guide quick toggle
+  btnGuideToggle.addEventListener('click', ()=> { guideBadge.style.display = guideBadge.style.display === 'block' ? 'none' : 'block'; settings.guide = guideBadge.style.display === 'block'; saveSettings(); });
+
+  guideCloseBtn.addEventListener('click', ()=> { guideBadge.style.display='none'; settings.guide = false; saveSettings(); });
+
+  // Helpers: start game
+  function startGame(){
+    // reset scores
+    players = players.map(p=> Object.assign({},p,{score:p.score||0}) );
+    savePlayers();
+    renderScoreboard();
+    buildWheel();
+    showScreen(screenGame);
+  }
+
+  // initial load
+  loadPlayers();
+  applySettingsUI();
+  renderPlayersList();
+  renderScoreboard();
+  updateLoadText();
+
+  // utility: when page loads, build wheel size update after fonts/images
+  window.addEventListener('load', ()=> {
+    setTimeout(()=> buildWheel(), 200);
+    // ensure speechSynthesis voices are loaded
+    if(typeof speechSynthesis !== 'undefined'){
+      speechSynthesis.onvoiceschanged = ()=> {};
+    }
+  });
+
+  // small helper to update wheel on resize
+  window.addEventListener('resize', ()=> {
+    // re-create wheel labels to align translation values
+    buildWheel();
+  });
+
+  // expose minimal debug (not necessary, but helpful)
+  window._vre = {players,savePlayers,loadPlayers,settings};
+
+})();
+</script>
+</body>
+</html>
